@@ -33,3 +33,5 @@ class WhoccSpider(scrapy.Spider):
                 'Code': code,
                 'Nom': name,
             }
+
+#scrapy crawl whooc -o whocc_data.csv
