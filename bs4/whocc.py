@@ -114,24 +114,26 @@ class WHOCCAtcDddIndex:
         response = await self.client.request("GET", url, timeout=None)
         parsed = self.parse(response.text, 'html5lib')
         if check_p:
-            runtime_element = parsed.select_one("#last_updated").previousSibling
+            runtime_element = parsed.select_one("#last_updated").previous_sibling
             if getattr(runtime_element, "name") == "p":
                 content = str(runtime_element)
                 atc_dataset = re.findall(self.ATC_RE, content)
-                return [(code, self.ACT_DDD_ROOT + href.replace("&amp;", "&"), name)
-                        for code, href, name in
-                        atc_dataset]
+                return [(code, self.ACT_DDD_ROOT + href.replace("&amp;", "&"), name) for code, href, name in atc_dataset]
         if check_table:
             tr_list = parsed.select("#content > ul > table > * > tr")
             datalist = []
             for tr in tr_list[1:]:
                 item = {}
-                for column, td in zip(["ATC code", "Name", "DDD", "U", "Adm.R", "Note", "href"],
-                                      tr.findAll("td") + [url]):
-                    item[column] = td if isinstance(td, str) else td.get_text().strip()
+                for column, td in zip(
+                    ["ATC code", "Name", "DDD", "U", "Adm.R", "Note", "href"], tr.find_all("td") + [url]
+                ):
+                    if isinstance(td, str):
+                        item[column] = td.strip()
+                    else:
+                        item[column] = td.get_text().strip()
                 if not item.get("ATC code"):
-                    item["ATC code"] = datalist[-1].get("ATC code")
+                    if datalist:
+                        item["ATC code"] = datalist[-1].get("ATC code")
                 datalist.append(item)
-
             return datalist
         return parsed
