@@ -5,7 +5,7 @@ Example of webscrapped document : [click here](https://docs.google.com/spreadshe
 
 ## Prerequisites
 
-- Python 3
+- Python 3.11
 - Pandas library (`pip install pandas`)
 - BeautifulSoup library (`pip install beautifulsoup4`)
 - httpx library (`pip install httpx`)
