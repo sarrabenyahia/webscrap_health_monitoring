@@ -42,6 +42,15 @@ async def main(loop):
     # Drop temporary columns
     columns_to_drop = [col for col in concatenated_data.columns if col.startswith('ATC code_temp')]
     concatenated_data = concatenated_data.drop(columns=columns_to_drop)
+    
+    #Filling the NAs of L5 level 
+    # Sort the DataFrame by 'ATC code_L5'
+    concatenated_data.sort_values(by='ATC code_L5', inplace=True)
+
+    # Forward fill the NaN values within each group of the same 'ATC code_L5'
+    concatenated_data['Name_L5'] = concatenated_data.groupby('ATC code_L5')['Name_L5'].ffill()
+    
+    concatenated_data.sort_values(by='ATC code_L1', inplace=True)
 
     # Save the concatenated dataframe to an Excel file
     concatenated_data.to_excel('ATC_DDD_Index.xlsx', index=False)
