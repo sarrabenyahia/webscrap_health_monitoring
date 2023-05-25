@@ -14,17 +14,37 @@ async def main(loop):
     pd.DataFrame(atc_ddd.l4, columns=["ATC code", "href", "name"]).to_excel('demo_atc_l4.xlsx', index=False)
     pd.DataFrame(atc_ddd.l5).to_excel('demo_atc_l5.xlsx', index=False)
 
-    # Concatenate the Excel files
-    file_names = ["demo_atc_l1.xlsx", "demo_atc_l2.xlsx", "demo_atc_l3.xlsx", "demo_atc_l4.xlsx", "demo_atc_l5.xlsx"]
-    data_frames = []
+    # Add suffix to level dataframes
+    data_l1 = pd.DataFrame(atc_ddd.l1, columns=["ATC code", "href", "name"]).add_suffix('_L1')
+    data_l2 = pd.DataFrame(atc_ddd.l2, columns=["ATC code", "href", "name"]).add_suffix('_L2')
+    data_l3 = pd.DataFrame(atc_ddd.l3, columns=["ATC code", "href", "name"]).add_suffix('_L3')
+    data_l4 = pd.DataFrame(atc_ddd.l4, columns=["ATC code", "href", "name"]).add_suffix('_L4')
+    data_l5 = pd.DataFrame(atc_ddd.l5).add_suffix('_L5')
 
-    for file_name in file_names:
-        df = pd.read_excel(file_name)
-        data_frames.append(df)
+    # Create a temporary column with the first character of the ATC code for each level
+    data_l2['ATC code_temp2'] = data_l2['ATC code_L2'].str[:1]
+    data_l3['ATC code_temp3'] = data_l3['ATC code_L3'].str[:3]
+    data_l4['ATC code_temp4'] = data_l4['ATC code_L4'].str[:4]
+    data_l5['ATC code_temp5'] = data_l5['ATC code_L5'].str[:5]
 
-    concatenated_df = pd.concat(data_frames)
-    concatenated_df.to_excel('concatenated_atc_data.xlsx', index=False)
-    print("Concatenated data saved to concatenated_atc_data.xlsx")
+    # Merge level 1 and level 2 dataframes
+    concatenated_data = pd.merge(data_l1, data_l2, left_on='ATC code_L1', right_on='ATC code_temp2', how='outer')
+
+    # Merge level 1-2 and level 3 dataframe
+    concatenated_data = pd.merge(concatenated_data, data_l3, left_on='ATC code_L2', right_on='ATC code_temp3', how='outer')
+
+    # Merge level 1-2-3 and level 4 dataframe
+    concatenated_data = pd.merge(concatenated_data, data_l4, left_on='ATC code_L3', right_on='ATC code_temp4', how='outer')
+
+    # Merge level 1-2-3-4 and level 5 dataframe
+    concatenated_data = pd.merge(concatenated_data, data_l5, left_on='ATC code_L4', right_on='ATC code_temp5', how='outer')
+
+    # Drop temporary columns
+    columns_to_drop = [col for col in concatenated_data.columns if col.startswith('ATC code_temp')]
+    concatenated_data = concatenated_data.drop(columns=columns_to_drop)
+
+    # Save the concatenated dataframe to an Excel file
+    concatenated_data.to_excel('ATC_DDD_Index.xlsx', index=False)
 
 
 if __name__ == '__main__':
