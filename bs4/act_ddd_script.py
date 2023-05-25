@@ -45,14 +45,15 @@ async def main(loop):
     concatenated_data = concatenated_data.drop(columns=columns_to_drop)
     
     # Forward fill the NaN values within each group of the same 'ATC code_L5'
-    concatenated_data.Name_L5.replace('', np.nan, inplace=True)
+    concatenated_data.replace('', np.nan, inplace=True)
     concatenated_data["Name_L5"] = concatenated_data.groupby('ATC code_L5')['Name_L5'].ffill().bfill()
     concatenated_data.sort_values(by=['ATC code_L1', 'ATC code_L2', 'ATC code_L3', 'ATC code_L4', 'ATC code_L5'], inplace=True)
-
+    #flag na ddd 
+    concatenated_data['flag_DDD'] = np.where(concatenated_data['DDD_L5'].notna(), 1, 0)
     # Save the concatenated dataframe to an Excel file
     concatenated_data.to_excel('ATC_DDD_Index.xlsx', index=False)
     
-    
+
 if __name__ == '__main__':
     loop = asyncio.get_event_loop()
     loop.run_until_complete(main(loop))
