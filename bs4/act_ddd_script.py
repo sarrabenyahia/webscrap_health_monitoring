@@ -4,11 +4,6 @@ import numpy as np
 
 from whocc import WHOCCAtcDddIndex
 
-def fillna(df):
-    df.Name_L5.replace('', np.nan, inplace=True)
-    df.sort_values(by='ATC code_L5', inplace=True)
-    df["Name_L5"] = df.groupby('ATC code_L5')['Name_L5'].transform(lambda x: x.ffill())
-    #print(df['Name_L5'][df['ATC code_L5']=='G02AD02']) check
 
 async def main(loop):
     atc_ddd = WHOCCAtcDddIndex(loop=loop)
@@ -50,7 +45,9 @@ async def main(loop):
     concatenated_data = concatenated_data.drop(columns=columns_to_drop)
     
     # Forward fill the NaN values within each group of the same 'ATC code_L5'
-    fillna(concatenated_data)
+    concatenated_data.Name_L5.replace('', np.nan, inplace=True)
+    concatenated_data.sort_values(by='ATC code_L5', inplace=True)
+    concatenated_data["Name_L5"] = concatenated_data.groupby('ATC code_L5')['Name_L5'].transform(lambda x: x.ffill())
     
     # Save the concatenated dataframe to an Excel file
     concatenated_data.to_excel('ATC_DDD_Index.xlsx', index=False)
