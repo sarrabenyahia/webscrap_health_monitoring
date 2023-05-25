@@ -1,8 +1,14 @@
 import asyncio
 import pandas as pd
+import numpy as np
 
 from whocc import WHOCCAtcDddIndex
 
+def fillna(df):
+    df.Name_L5.replace('', np.nan, inplace=True)
+    df.sort_values(by='ATC code_L5', inplace=True)
+    df["Name_L5"] = df.groupby('ATC code_L5')['Name_L5'].transform(lambda x: x.ffill())
+    #print(df['Name_L5'][df['ATC code_L5']=='G02AD02']) check
 
 async def main(loop):
     atc_ddd = WHOCCAtcDddIndex(loop=loop)
@@ -43,18 +49,11 @@ async def main(loop):
     columns_to_drop = [col for col in concatenated_data.columns if col.startswith('ATC code_temp')]
     concatenated_data = concatenated_data.drop(columns=columns_to_drop)
     
-    #Filling the NAs of L5 level 
-    # Sort the DataFrame by 'ATC code_L5'
-    concatenated_data.sort_values(by='ATC code_L5', inplace=True)
-
     # Forward fill the NaN values within each group of the same 'ATC code_L5'
-    concatenated_data['Name_L5'] = concatenated_data.groupby('ATC code_L5')['Name_L5'].ffill()
+    fillna(concatenated_data)
     
-    concatenated_data.sort_values(by='ATC code_L1', inplace=True)
-
     # Save the concatenated dataframe to an Excel file
     concatenated_data.to_excel('ATC_DDD_Index.xlsx', index=False)
-
 
 if __name__ == '__main__':
     loop = asyncio.get_event_loop()
