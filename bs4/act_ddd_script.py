@@ -46,8 +46,7 @@ async def main(loop):
     
     # Forward fill the NaN values within each group of the same 'ATC code_L5'
     concatenated_data.Name_L5.replace('', np.nan, inplace=True)
-    concatenated_data.sort_values(by='ATC code_L5', inplace=True)
-    concatenated_data["Name_L5"] = concatenated_data.groupby('ATC code_L5')['Name_L5'].transform(lambda x: x.ffill())
+    concatenated_data["Name_L5"] = concatenated_data.groupby('ATC code_L5')['Name_L5'].ffill().bfill()
     concatenated_data.sort_values(by=['ATC code_L1', 'ATC code_L2', 'ATC code_L3', 'ATC code_L4', 'ATC code_L5'], inplace=True)
 
     # Save the concatenated dataframe to an Excel file
